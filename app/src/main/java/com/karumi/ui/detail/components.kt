@@ -1,10 +1,7 @@
 package com.karumi.ui.detail
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
@@ -26,72 +23,83 @@ import com.karumi.ui.list.AvengerBadge
 
 @Composable
 fun SuperHeroDetailScreen(
-    viewModel: SuperHeroDetailViewModel,
-    onBackButtonTapped: () -> Unit
+  viewModel: SuperHeroDetailViewModel,
+  onBackButtonTapped: () -> Unit,
+  onSuperHeroImageTapped: (SuperHero) -> Unit
 ) {
-    LinkViewModelLifecycle(viewModel)
-    val state by viewModel.state.collectAsState(ViewModelState.Loading())
-    Scaffold(
-        backgroundColor = MaterialTheme.colors.background,
-        topBar = {
-            SuperHeroTopBar(
-                title = viewModel.superHeroName,
-                onBackButtonTapped = onBackButtonTapped
-            )
-        },
-        content = {
-            when (val currentState = state) {
-                is ViewModelState.Loaded -> SuperHeroLoadedScreen(currentState.content.superHero)
-                else -> SuperHeroLoadingScreen()
-            }
-        }
-    )
+  LinkViewModelLifecycle(viewModel)
+  val state by viewModel.state.collectAsState(ViewModelState.Loading())
+  Scaffold(
+    backgroundColor = MaterialTheme.colors.background,
+    topBar = {
+      SuperHeroTopBar(
+        title = viewModel.superHeroName,
+        onBackButtonTapped = onBackButtonTapped
+      )
+    },
+    content = {
+      when (val currentState = state) {
+        is ViewModelState.Loaded -> SuperHeroLoadedScreen(
+          currentState.content.superHero,
+          onSuperHeroImageTapped
+        )
+        else -> SuperHeroLoadingScreen()
+      }
+    }
+  )
 }
 
 @Composable
-private fun SuperHeroLoadedScreen(superHero: SuperHero) = Column(Modifier.fillMaxSize()) {
+private fun SuperHeroLoadedScreen(superHero: SuperHero, onImageTapped: (SuperHero) -> Unit) =
+  Column(Modifier.fillMaxSize()) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(300.dp)
+      modifier = Modifier
+        .fillMaxWidth()
+        .height(300.dp)
     ) {
-        Image(
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-            painter = rememberCoilPainter(superHero.photo),
-            contentDescription = superHero.name
-        )
-        AvengerBadge(
-            superHero = superHero,
-            modifier = Modifier
-                .padding(10.dp)
-                .align(Alignment.BottomEnd)
-        )
+      Image(
+        modifier = Modifier
+          .fillMaxSize()
+          .clickable(
+            enabled = true,
+            onClick = {
+              onImageTapped.invoke(superHero)
+            }),
+        contentScale = ContentScale.Crop,
+        painter = rememberCoilPainter(superHero.photo),
+        contentDescription = superHero.name,
+      )
+      AvengerBadge(
+        superHero = superHero,
+        modifier = Modifier
+          .padding(10.dp)
+          .align(Alignment.BottomEnd)
+      )
     }
     Column(
-        modifier = Modifier
-            .padding(horizontal = 20.dp)
-            .verticalScroll(state = rememberScrollState())
+      modifier = Modifier
+        .padding(horizontal = 20.dp)
+        .verticalScroll(state = rememberScrollState())
     ) {
-        Spacer(Modifier.size(10.dp))
-        Text(
-            text = superHero.name,
-            style = MaterialTheme.typography.h2,
-            color = MaterialTheme.colors.onBackground
-        )
-        Spacer(Modifier.size(10.dp))
-        Text(
-            text = superHero.description,
-            style = MaterialTheme.typography.body1,
-            color = MaterialTheme.colors.onBackground,
-            textAlign = TextAlign.Justify
-        )
+      Spacer(Modifier.size(10.dp))
+      Text(
+        text = superHero.name,
+        style = MaterialTheme.typography.h2,
+        color = MaterialTheme.colors.onBackground
+      )
+      Spacer(Modifier.size(10.dp))
+      Text(
+        text = superHero.description,
+        style = MaterialTheme.typography.body1,
+        color = MaterialTheme.colors.onBackground,
+        textAlign = TextAlign.Justify
+      )
     }
-}
+  }
 
 @Composable
 private fun SuperHeroLoadingScreen() {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = MaterialTheme.colors.secondary)
-    }
+  Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    CircularProgressIndicator(color = MaterialTheme.colors.secondary)
+  }
 }
